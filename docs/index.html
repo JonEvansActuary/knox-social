@@ -1,0 +1,505 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Knox Social</title>
+    <meta
+      name="description"
+      content="Knoxville social circuit — events scored for crowd and mix."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Outfit:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0c0b0a;
+        --surface: #151311;
+        --raised: #1c1916;
+        --fg: #f0ebe3;
+        --muted: #9a9388;
+        --subtle: #6f6960;
+        --border: rgb(240 235 227 / 12%);
+        --accent: #c9c2b3;
+        --accent-fg: #0c0b0a;
+      }
+      * { box-sizing: border-box; }
+      html, body {
+        margin: 0;
+        min-height: 100%;
+        overflow-x: hidden;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: Outfit, ui-sans-serif, system-ui, sans-serif;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+      }
+      h1, h2, h3 {
+        font-family: Fraunces, ui-serif, Georgia, serif;
+        letter-spacing: -0.03em;
+        line-height: 1.15;
+        font-weight: 500;
+      }
+      button:not(:disabled), [role="button"] { cursor: pointer; }
+      .wrap { max-width: 72rem; margin: 0 auto; padding: 0 1rem; }
+      @media (min-width: 640px) { .wrap { padding: 0 1.5rem; } }
+      @media (min-width: 1024px) { .wrap { padding: 0 2rem; } }
+      header { border-bottom: 1px solid var(--border); padding: 2rem 0; }
+      .kicker {
+        font-size: 0.75rem;
+        font-weight: 500;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin: 0;
+      }
+      h1 { font-size: clamp(2rem, 5vw, 3rem); margin: 0.5rem 0 0; }
+      .lede { max-width: 36rem; color: var(--muted); font-size: 0.9rem; margin: 0.75rem 0 0; }
+      .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; margin-top: 1.5rem; }
+      .stat {
+        min-width: 0;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        background: var(--surface);
+        border-radius: 12px;
+        padding: 0.75rem 1rem;
+      }
+      .stat dt { font-size: 0.7rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--subtle); }
+      .stat dd { margin: 0.25rem 0 0; font-family: Fraunces, serif; font-size: 1.5rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .stat dd.small { font-size: 1rem; }
+      .layout { display: flex; gap: 2rem; padding: 1.5rem 0 3rem; }
+      .filters { width: 16rem; flex-shrink: 0; display: none; }
+      @media (min-width: 1024px) { .filters { display: block; } }
+      main { min-width: 0; flex: 1; }
+      .toolbar { position: sticky; top: 0; z-index: 10; background: rgb(12 11 10 / 95%); backdrop-filter: blur(8px); padding: 0.75rem 0; display: flex; flex-direction: column; gap: 0.75rem; }
+      .search-row { display: flex; gap: 0.5rem; }
+      input[type="search"] {
+        height: 44px; width: 100%; border-radius: 8px; border: 1px solid var(--border);
+        background: var(--surface); color: var(--fg); padding: 0 0.9rem; font: inherit; font-size: 0.9rem;
+      }
+      input[type="search"]:focus { outline: 2px solid var(--accent); outline-offset: 0; }
+      .chip, .btn {
+        height: 36px; border-radius: 999px; border: 1px solid var(--border);
+        background: transparent; color: var(--muted); padding: 0 0.85rem; font: inherit; font-size: 0.85rem;
+      }
+      .chip.on, .btn.on { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+      .chip:hover, .btn:hover { color: var(--fg); }
+      .chip.on:hover { color: var(--accent-fg); }
+      .sorts { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+      .shown { margin-left: auto; font-size: 0.75rem; color: var(--subtle); font-variant-numeric: tabular-nums; }
+      .btn-filters { display: inline-flex; align-items: center; height: 44px; border-radius: 8px; }
+      @media (min-width: 1024px) { .btn-filters { display: none; } }
+      fieldset { border: 0; margin: 0 0 1.5rem; padding: 0; }
+      legend { font-size: 0.7rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--subtle); }
+      .chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem; }
+      .stack { display: flex; flex-direction: column; gap: 0.25rem; margin-top: 0.5rem; }
+      label.range { display: block; color: var(--muted); font-size: 0.8rem; margin-top: 0.75rem; }
+      input[type="range"] { width: 100%; accent-color: var(--accent); }
+      .cards { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.75rem; }
+      .card {
+        min-width: 0; border: 1px solid var(--border); background: var(--surface);
+        border-radius: 16px; padding: 1rem 1.1rem; display: grid; gap: 0.65rem;
+      }
+      .card h2 { font-size: 1.15rem; margin: 0; overflow-wrap: anywhere; }
+      .meta { color: var(--muted); font-size: 0.85rem; overflow-wrap: anywhere; }
+      .origin { display: inline-block; font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--subtle); border: 1px solid var(--border); border-radius: 999px; padding: 0.1rem 0.5rem; }
+      .scores { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; min-width: 0; }
+      .score label { display: flex; justify-content: space-between; font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--subtle); }
+      .bar { height: 6px; background: rgb(240 235 227 / 10%); border-radius: 99px; overflow: hidden; margin-top: 0.35rem; }
+      .bar > span { display: block; height: 100%; background: var(--accent); border-radius: 99px; }
+      .row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+      .ghost {
+        height: 44px; min-height: 44px; border-radius: 8px; border: 1px solid var(--border);
+        background: transparent; color: var(--fg); padding: 0 0.9rem; font: inherit; font-size: 0.85rem;
+      }
+      .solid {
+        height: 44px; min-height: 44px; border-radius: 8px; border: 0;
+        background: var(--accent); color: var(--accent-fg); padding: 0 0.9rem; font: inherit; font-size: 0.85rem; font-weight: 500;
+      }
+      .empty { text-align: center; color: var(--muted); border: 1px solid var(--border); border-radius: 12px; padding: 3rem 1rem; }
+      footer { color: var(--subtle); font-size: 0.75rem; max-width: 40rem; padding: 0 0 2.5rem; line-height: 1.6; }
+      .overlay { position: fixed; inset: 0; z-index: 50; display: flex; justify-content: flex-end; }
+      .backdrop { position: absolute; inset: 0; background: rgb(12 11 10 / 70%); border: 0; }
+      .sheet {
+        position: relative; z-index: 1; width: 100%; max-width: 32rem; height: 100%;
+        background: var(--surface); display: flex; flex-direction: column; min-height: 0;
+        box-shadow: 0 0 40px rgb(0 0 0 / 40%);
+      }
+      .sheet-head, .sheet-foot { flex-shrink: 0; padding: 1rem 1.1rem; border-bottom: 1px solid var(--border); }
+      .sheet-foot { border-bottom: 0; border-top: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 0.5rem; padding-bottom: 1.5rem; }
+      .sheet-body { overflow: auto; padding: 1rem 1.1rem 1.5rem; min-height: 0; }
+      .sheet h2 { font-size: 1.6rem; margin: 0.35rem 0 0; overflow-wrap: anywhere; }
+      .sheet p { overflow-wrap: anywhere; }
+      a.solid, a.ghost { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
+      .filter-drawer { position: fixed; inset: 0; z-index: 40; display: none; }
+      .filter-drawer.open { display: block; }
+      @media (min-width: 1024px) { .filter-drawer { display: none !important; } }
+      .drawer {
+        position: absolute; left: 0; top: 0; bottom: 0; width: min(100%, 20rem);
+        background: var(--surface); z-index: 1; overflow: auto; padding: 1rem;
+        box-shadow: 0 0 40px rgb(0 0 0 / 40%);
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="wrap">
+        <p class="kicker">Knoxville · social circuit</p>
+        <h1>Knox Social</h1>
+        <p class="lede">
+          Future nights from VIP Knoxville plus New2Knox, SalsaKnox, Junior League,
+          WCR, First Friday, and a few store rooms — scored for looks and women-to-men ratio.
+        </p>
+        <dl class="stats">
+          <div class="stat"><dt>On the books</dt><dd id="stat-total">—</dd></div>
+          <div class="stat"><dt>Next 7 days</dt><dd id="stat-week">—</dd></div>
+          <div class="stat"><dt>Top night</dt><dd id="stat-top" class="small">—</dd></div>
+        </dl>
+      </div>
+    </header>
+
+    <div class="wrap layout">
+      <aside class="filters" id="filters-desktop"></aside>
+      <main>
+        <div class="toolbar">
+          <div class="search-row">
+            <input id="q" type="search" placeholder="Search title, venue, neighborhood" />
+            <button class="ghost btn-filters" type="button" id="open-filters">Filters</button>
+          </div>
+          <div class="sorts" id="sorts"></div>
+        </div>
+        <ul class="cards" id="list"></ul>
+      </main>
+    </div>
+
+    <div class="wrap">
+      <footer>
+        Sources: VIP Knoxville plus New2Knox, SalsaKnox, WCR Knoxville, Junior League,
+        Inside of Knoxville / ArtWalk, Hampton House, Kendra Scott, and a named ballet gala.
+        Looks and ratio scores are estimates, not attendance data.
+      </footer>
+    </div>
+
+    <div class="filter-drawer" id="filter-drawer">
+      <button class="backdrop" type="button" aria-label="Close filters" id="close-filters"></button>
+      <div class="drawer" id="filters-mobile"></div>
+    </div>
+    <div id="detail"></div>
+
+    <script>
+      const TODAY = "2026-09-08";
+      const SAVE_KEY = "knox-social-saved";
+      const SORTS = [
+        { id: "date", label: "Date" },
+        { id: "scene", label: "Best night" },
+        { id: "attractiveness", label: "Looks" },
+        { id: "ratio", label: "Ratio" },
+      ];
+
+      const state = {
+        events: [],
+        saved: new Set(),
+        selected: null,
+        filters: {
+          query: "",
+          category: "all",
+          origin: "all",
+          month: "all",
+          minAttr: 1,
+          minRatio: 1,
+          nightsOnly: false,
+          savedOnly: false,
+          sort: "date",
+        },
+      };
+
+      try {
+        const raw = localStorage.getItem(SAVE_KEY);
+        if (raw) state.saved = new Set(JSON.parse(raw));
+      } catch {}
+
+      const sceneScore = (e) => {
+        const raw = e.attractiveness * 0.62 + e.ratio * 0.38;
+        return Math.round((e.night ? raw : raw * 0.78) * 10) / 10;
+      };
+      const parseTime = (t) => {
+        if (!t) return "Time unpublished";
+        const [hStr, mStr] = t.split(":");
+        const h = Number(hStr), m = Number(mStr);
+        if (Number.isNaN(h)) return t;
+        const ampm = h >= 12 ? "PM" : "AM";
+        const hr = ((h + 11) % 12) + 1;
+        return m ? `${hr}:${String(m).padStart(2, "0")} ${ampm}` : `${hr} ${ampm}`;
+      };
+      const formatDate = (iso) => {
+        const [y, m, d] = iso.split("-").map(Number);
+        return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString("en-US", {
+          weekday: "short", month: "short", day: "numeric", timeZone: "UTC",
+        });
+      };
+      const monthLabel = (key) => {
+        const [y, m] = key.split("-").map(Number);
+        return new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString("en-US", {
+          month: "long", year: "numeric", timeZone: "UTC",
+        });
+      };
+      const mapsHref = (e) =>
+        e.mapsUrl || `https://maps.google.com/?q=${encodeURIComponent(e.address || e.venue)}`;
+      const listingLabel = (e) =>
+        !e.origin || e.origin === "VIP Knoxville" ? "VIP listing" : `${e.origin} listing`;
+
+      function persist() {
+        localStorage.setItem(SAVE_KEY, JSON.stringify([...state.saved]));
+      }
+      function toggleSave(id) {
+        if (state.saved.has(id)) state.saved.delete(id);
+        else state.saved.add(id);
+        persist();
+        render();
+      }
+      function visible() {
+        const f = state.filters;
+        const q = f.query.trim().toLowerCase();
+        const next = state.events.filter((e) => {
+          if (f.savedOnly && !state.saved.has(e.id)) return false;
+          if (f.nightsOnly && !e.night) return false;
+          if (f.category !== "all" && e.category !== f.category) return false;
+          if (f.origin !== "all" && e.origin !== f.origin) return false;
+          if (f.month !== "all" && e.date.slice(0, 7) !== f.month) return false;
+          if (e.attractiveness < f.minAttr) return false;
+          if (e.ratio < f.minRatio) return false;
+          if (q) {
+            const hay = `${e.title} ${e.venue} ${e.address} ${e.neighborhood} ${e.category} ${e.origin} ${e.dressCode}`.toLowerCase();
+            if (!hay.includes(q)) return false;
+          }
+          return true;
+        });
+        next.sort((a, b) => {
+          if (f.sort === "date") return a.date.localeCompare(b.date) || a.title.localeCompare(b.title);
+          if (f.sort === "attractiveness") return b.attractiveness - a.attractiveness;
+          if (f.sort === "ratio") return b.ratio - a.ratio;
+          return sceneScore(b) - sceneScore(a);
+        });
+        return next;
+      }
+
+      function chip(label, on, attr) {
+        return `<button type="button" class="chip${on ? " on" : ""}" ${attr}>${label}</button>`;
+      }
+      function filterMarkup() {
+        const f = state.filters;
+        const months = [...new Set(state.events.map((e) => e.date.slice(0, 7)))].sort();
+        const origins = [...new Set(state.events.map((e) => e.origin))].sort();
+        const cats = [...new Set(state.events.map((e) => e.category))].sort();
+        return `
+          <fieldset><legend>Month</legend>
+            <div class="stack">
+              ${chip("All months", f.month === "all", 'data-k="month" data-v="all"')}
+              ${months.map((m) => chip(monthLabel(m), f.month === m, `data-k="month" data-v="${m}"`)).join("")}
+            </div>
+          </fieldset>
+          <fieldset><legend>Source</legend>
+            <div class="chips">
+              ${chip("All", f.origin === "all", 'data-k="origin" data-v="all"')}
+              ${origins.map((o) => chip(o, f.origin === o, `data-k="origin" data-v="${o}"`)).join("")}
+            </div>
+          </fieldset>
+          <fieldset><legend>Type</legend>
+            <div class="chips">
+              ${chip("All", f.category === "all", 'data-k="category" data-v="all"')}
+              ${cats.map((c) => chip(c, f.category === c, `data-k="category" data-v="${c}"`)).join("")}
+            </div>
+          </fieldset>
+          <label class="range">Looks floor · ${f.minAttr}
+            <input type="range" min="1" max="10" step="1" value="${f.minAttr}" data-range="minAttr" />
+          </label>
+          <label class="range">Ratio floor · ${f.minRatio}
+            <input type="range" min="1" max="10" step="1" value="${f.minRatio}" data-range="minRatio" />
+          </label>
+          <div class="stack" style="margin-top:1rem">
+            ${chip(f.nightsOnly ? "Nights only" : "Nights only", f.nightsOnly, 'data-toggle="nightsOnly"')}
+            ${chip(`Saved (${state.saved.size})`, f.savedOnly, 'data-toggle="savedOnly"')}
+          </div>
+        `;
+      }
+
+      function scoreMeter(label, n) {
+        const pct = Math.max(0, Math.min(100, n * 10));
+        return `<div class="score"><label><span>${label}</span><span>${n.toFixed(1)}</span></label>
+          <div class="bar"><span style="width:${pct}%"></span></div></div>`;
+      }
+
+      function card(e) {
+        return `<li>
+          <article class="card">
+            <div class="row">
+              <span class="origin">${e.origin}</span>
+              <span class="meta">${formatDate(e.date)} · ${parseTime(e.startTime)}</span>
+            </div>
+            <h2>${e.title}</h2>
+            <p class="meta">${e.venue} · ${e.address}</p>
+            <div class="scores">
+              ${scoreMeter("Looks", e.attractiveness)}
+              ${scoreMeter("Women : men", e.ratio)}
+            </div>
+            <div class="row">
+              <button class="solid" data-open="${e.id}">Details</button>
+              <button class="ghost" data-save="${e.id}">${state.saved.has(e.id) ? "Saved" : "Save"}</button>
+            </div>
+          </article>
+        </li>`;
+      }
+
+      function detail(e) {
+        const signup = e.signupUrl || e.ticketUrl;
+        const listing = e.sourceUrl;
+        return `<div class="overlay">
+          <button class="backdrop" type="button" data-close aria-label="Close event"></button>
+          <aside class="sheet">
+            <div class="sheet-head">
+              <span class="origin">${e.origin}</span>
+              <h2>${e.title}</h2>
+              <p class="meta">${formatDate(e.date)} · ${parseTime(e.startTime)}${e.endTime ? " – " + parseTime(e.endTime) : ""}</p>
+            </div>
+            <div class="sheet-body">
+              <p class="meta">${e.venue}<br>${e.address}</p>
+              <p>${e.description || ""}</p>
+              <p class="meta"><strong>Fee.</strong> ${e.fee}<br><strong>Dress.</strong> ${e.dressCode}<br><strong>Register.</strong> ${e.registration}</p>
+              <div class="scores" style="margin-top:1rem">
+                ${scoreMeter("Looks", e.attractiveness)}
+                ${scoreMeter("Women : men", e.ratio)}
+              </div>
+              <p class="meta" style="margin-top:0.75rem">${e.scoreWhy || ""}</p>
+            </div>
+            <div class="sheet-foot">
+              ${signup ? `<a class="solid" href="${signup}" target="_blank" rel="noopener">Sign up</a>` : ""}
+              ${listing ? `<a class="ghost" href="${listing}" target="_blank" rel="noopener">${listingLabel(e)}</a>` : ""}
+              <a class="ghost" href="${mapsHref(e)}" target="_blank" rel="noopener">Map</a>
+              <button class="ghost" data-save="${e.id}">${state.saved.has(e.id) ? "Saved" : "Save"}</button>
+              <button class="ghost" data-close>Close</button>
+            </div>
+          </aside>
+        </div>`;
+      }
+
+      function bindFilters(root) {
+        root.querySelectorAll("[data-k]").forEach((b) => {
+          b.onclick = () => {
+            state.filters[b.dataset.k] = b.dataset.v;
+            render();
+          };
+        });
+        root.querySelectorAll("[data-toggle]").forEach((b) => {
+          b.onclick = () => {
+            state.filters[b.dataset.toggle] = !state.filters[b.dataset.toggle];
+            render();
+          };
+        });
+        root.querySelectorAll("[data-range]").forEach((el) => {
+          el.oninput = () => {
+            state.filters[el.dataset.range] = Number(el.value);
+            render();
+          };
+        });
+      }
+
+      function render() {
+        const rows = visible();
+        const top = [...state.events].sort((a, b) => sceneScore(b) - sceneScore(a))[0];
+        const weekEnd = new Date(TODAY);
+        // next 7 days inclusive of today
+        document.getElementById("stat-total").textContent = String(state.events.length);
+        document.getElementById("stat-week").textContent = String(
+          state.events.filter((e) => e.date >= TODAY && e.date <= "2026-09-15").length,
+        );
+        document.getElementById("stat-top").textContent = top ? top.title.split(":")[0] : "—";
+
+        const sorts = document.getElementById("sorts");
+        sorts.innerHTML =
+          SORTS.map((s) => chip(s.label, state.filters.sort === s.id, `data-sort="${s.id}"`)).join("") +
+          `<span class="shown">${rows.length} shown</span>`;
+        sorts.querySelectorAll("[data-sort]").forEach((b) => {
+          b.onclick = () => {
+            state.filters.sort = b.dataset.sort;
+            render();
+          };
+        });
+
+        const html = filterMarkup();
+        document.getElementById("filters-desktop").innerHTML = html;
+        document.getElementById("filters-mobile").innerHTML =
+          `<div class="row" style="justify-content:space-between;margin-bottom:1rem"><strong>Filters</strong>
+           <button class="ghost" id="close-filters-inner">Close</button></div>` + html;
+        bindFilters(document.getElementById("filters-desktop"));
+        bindFilters(document.getElementById("filters-mobile"));
+        const closeInner = document.getElementById("close-filters-inner");
+        if (closeInner) closeInner.onclick = () => document.getElementById("filter-drawer").classList.remove("open");
+
+        const list = document.getElementById("list");
+        list.innerHTML = rows.length ? rows.map(card).join("") : `<p class="empty">Nothing matches. Loosen the score floors or clear search.</p>`;
+        list.querySelectorAll("[data-open]").forEach((b) => {
+          b.onclick = () => {
+            state.selected = b.dataset.open;
+            render();
+          };
+        });
+        document.querySelectorAll("[data-save]").forEach((b) => {
+          b.onclick = () => toggleSave(b.dataset.save);
+        });
+
+        const detailRoot = document.getElementById("detail");
+        const ev = state.events.find((e) => e.id === state.selected);
+        detailRoot.innerHTML = ev ? detail(ev) : "";
+        detailRoot.querySelectorAll("[data-close]").forEach((b) => {
+          b.onclick = () => {
+            state.selected = null;
+            render();
+          };
+        });
+      }
+
+      document.getElementById("q").addEventListener("input", (e) => {
+        state.filters.query = e.target.value;
+        render();
+      });
+      document.getElementById("open-filters").onclick = () =>
+        document.getElementById("filter-drawer").classList.add("open");
+      document.getElementById("close-filters").onclick = () =>
+        document.getElementById("filter-drawer").classList.remove("open");
+      window.addEventListener("keydown", (e) => {
+        if (e.key !== "Escape") return;
+        state.selected = null;
+        document.getElementById("filter-drawer").classList.remove("open");
+        render();
+      });
+
+      function loadCatalog() {
+        return fetch("events.json")
+          .then((r) => {
+            if (!r.ok) throw new Error(r.status);
+            return r.json();
+          })
+          .catch(() =>
+            fetch(
+              "https://raw.githubusercontent.com/JonEvansActuary/knox-social/main/docs/events.json",
+            ).then((r) => {
+              if (!r.ok) throw new Error(r.status);
+              return r.json();
+            }),
+          );
+      }
+      loadCatalog()
+        .then((data) => {
+          state.events = data.events || [];
+          render();
+        })
+        .catch((err) => {
+          document.getElementById("list").innerHTML =
+            `<p class="empty">Could not load events. ${err}</p>`;
+        });
+    </script>
+  </body>
+</html>
